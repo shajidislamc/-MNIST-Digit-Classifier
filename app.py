@@ -44,10 +44,5 @@ if canvas_result.image_data is not None:
         predicted_digit = np.argmax(prediction)
         
         st.success(f"🖊️ The model predicts this digit as: **{predicted_digit}**")
-        
-        # Prediction probabilities bar chart
-        st.subheader("Prediction Probabilities")
-        prob_df = {str(i): float(prediction[0][i]) for i in range(10)}
-        st.bar_chart(prob_df)
     else:
         st.info("✏️ Draw a digit above to get a prediction!")
