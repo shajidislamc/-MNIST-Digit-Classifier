@@ -24,25 +24,20 @@ canvas_result = st_canvas(
 )
 
 if canvas_result.image_data is not None:
-    # Check if user drew anything by looking at the alpha channel
-    alpha_channel = canvas_result.image_data[:, :, 3]  # 0-255
-    if np.max(alpha_channel) > 0:  # Something was drawn
-        # Convert to grayscale PIL image
+    # Convert to grayscale
+    img_gray = np.array(canvas_result.image_data[..., :3].mean(axis=2))  # average RGB
+    if np.max(img_gray) > 5:  # threshold: at least one bright pixel
         img = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA').convert('L')
-        # Invert colors (MNIST style)
         img = Image.eval(img, lambda x: 255 - x)
         img = img.resize((28, 28))
-
-        # Show processed image
+        
         st.image(img, caption="Processed Input (28x28)", width=150)
-
-        # Preprocess for model
+        
         img_array = np.array(img).reshape(1, 784) / 255.0
-
-        # Predict
         prediction = model.predict(img_array)
         predicted_digit = np.argmax(prediction)
-
+        
         st.success(f"🖊️ The model predicts this digit as: **{predicted_digit}**")
     else:
         st.info("✏️ Draw a digit above to get a prediction!")
+
