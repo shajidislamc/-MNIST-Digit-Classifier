@@ -4,12 +4,12 @@ from tensorflow.keras.models import load_model
 from streamlit_drawable_canvas import st_canvas
 from PIL import Image
 
-# Load the trained MNIST model (saved in .keras format)
+# Load the trained MNIST model (HDF5 format)
 model = load_model("mnist_model.h5")
 
 st.set_page_config(page_title="MNIST Digit Classifier", layout="centered")
 st.title("✏️ MNIST Digit Classifier")
-st.write("Draw a digit (0-9) below and see the model prediction in real-time!")
+st.write("Draw a digit (0-9) below and get the prediction!")
 
 # --- Canvas for drawing ---
 canvas_result = st_canvas(
@@ -24,20 +24,24 @@ canvas_result = st_canvas(
 )
 
 if canvas_result.image_data is not None:
-    # Convert to grayscale
-    img_gray = np.array(canvas_result.image_data[..., :3].mean(axis=2))  # average RGB
-    if np.max(img_gray) > 5:  # threshold: at least one bright pixel
+    # Check if user drew anything (non-black pixels)
+    img_array = canvas_result.image_data[:, :, :3].sum(axis=2)  # sum RGB channels
+    if np.max(img_array) > 0:  # If anything was drawn
+        # Convert to grayscale PIL image
         img = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA').convert('L')
-        img = Image.eval(img, lambda x: 255 - x)
+        img = Image.eval(img, lambda x: 255 - x)  # Invert colors for MNIST style
         img = img.resize((28, 28))
         
+        # Show processed image
         st.image(img, caption="Processed Input (28x28)", width=150)
         
-        img_array = np.array(img).reshape(1, 784) / 255.0
-        prediction = model.predict(img_array)
+        # Preprocess for model
+        img_flat = np.array(img).reshape(1, 784) / 255.0
+        
+        # Predict
+        prediction = model.predict(img_flat)
         predicted_digit = np.argmax(prediction)
         
         st.success(f"🖊️ The model predicts this digit as: **{predicted_digit}**")
     else:
         st.info("✏️ Draw a digit above to get a prediction!")
-
