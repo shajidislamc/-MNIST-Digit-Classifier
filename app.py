@@ -13,9 +13,9 @@ st.write("Draw a digit (0-9) below and see the model prediction in real-time!")
 
 # --- Canvas for drawing ---
 canvas_result = st_canvas(
-    fill_color="#000000",  # Black brush
+    fill_color="#000000",      # Black brush
     stroke_width=15,
-    stroke_color="#FFFFFF",  # White digit (like MNIST)
+    stroke_color="#FFFFFF",    # White digit (like MNIST)
     background_color="#000000",
     width=280,
     height=280,
@@ -24,25 +24,25 @@ canvas_result = st_canvas(
 )
 
 if canvas_result.image_data is not None:
-    # Convert to grayscale image
-    img = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA').convert('L')
-    # Invert colors
-    img = Image.eval(img, lambda x: 255 - x)
-    
-    # Only proceed if user drew something (check pixel intensity)
-    img_array_check = np.array(img)
-    if np.max(img_array_check) > 10:  # threshold to detect any drawing
-        # Resize for model
+    # Check if user drew anything by looking at the alpha channel
+    alpha_channel = canvas_result.image_data[:, :, 3]  # 0-255
+    if np.max(alpha_channel) > 0:  # Something was drawn
+        # Convert to grayscale PIL image
+        img = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA').convert('L')
+        # Invert colors (MNIST style)
+        img = Image.eval(img, lambda x: 255 - x)
         img = img.resize((28, 28))
+
+        # Show processed image
         st.image(img, caption="Processed Input (28x28)", width=150)
-        
+
         # Preprocess for model
         img_array = np.array(img).reshape(1, 784) / 255.0
-        
+
         # Predict
         prediction = model.predict(img_array)
         predicted_digit = np.argmax(prediction)
-        
+
         st.success(f"🖊️ The model predicts this digit as: **{predicted_digit}**")
     else:
         st.info("✏️ Draw a digit above to get a prediction!")
