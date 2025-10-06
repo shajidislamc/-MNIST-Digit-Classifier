@@ -5,7 +5,7 @@ from streamlit_drawable_canvas import st_canvas
 from PIL import Image
 
 # Load the trained MNIST model (saved in .keras format)
-model = load_model("mnist_model.keras")
+model = load_model("mnist_model.h5")
 
 st.set_page_config(page_title="MNIST Digit Classifier", layout="centered")
 st.title("✏️ MNIST Digit Classifier")
