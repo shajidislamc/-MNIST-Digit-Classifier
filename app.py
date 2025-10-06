@@ -24,12 +24,12 @@ canvas_result = st_canvas(
 )
 
 if canvas_result.image_data is not None:
-    # Convert to grayscale PIL image
-    img = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA').convert('L')
-    
-    # Check if user drew anything
-    if np.sum(np.array(img)) > 0:
-        # Invert colors and resize
+    # Check if user drew anything by looking at the alpha channel
+    alpha_channel = canvas_result.image_data[:, :, 3]  # 0-255
+    if np.max(alpha_channel) > 0:  # Something was drawn
+        # Convert to grayscale PIL image
+        img = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA').convert('L')
+        # Invert colors
         img = Image.eval(img, lambda x: 255 - x)
         img = img.resize((28, 28))
         
