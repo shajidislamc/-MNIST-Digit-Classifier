@@ -4,8 +4,8 @@ from tensorflow.keras.models import load_model
 from streamlit_drawable_canvas import st_canvas
 from PIL import Image
 
-# Load the trained MNIST model (HDF5 format)
-model = load_model("mnist_model.h5")
+# Load the trained MNIST model (.keras format recommended)
+model = load_model("mnist_model.keras")
 
 st.set_page_config(page_title="MNIST Digit Classifier", layout="centered")
 st.title("✏️ MNIST Digit Classifier")
@@ -24,12 +24,12 @@ canvas_result = st_canvas(
 )
 
 if canvas_result.image_data is not None:
-    # Check if user drew anything (non-black pixels)
-    img_array = canvas_result.image_data[:, :, :3].sum(axis=2)  # sum RGB channels
-    if np.max(img_array) > 0:  # If anything was drawn
+    # Check if user drew anything using the alpha channel
+    alpha_channel = canvas_result.image_data[:, :, 3]
+    if np.max(alpha_channel) > 0:  # User drew something
         # Convert to grayscale PIL image
         img = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA').convert('L')
-        img = Image.eval(img, lambda x: 255 - x)  # Invert colors for MNIST style
+        img = Image.eval(img, lambda x: 255 - x)  # Invert colors
         img = img.resize((28, 28))
         
         # Show processed image
